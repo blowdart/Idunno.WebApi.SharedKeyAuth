@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Idunno.WebApi.SharedKeyAuthentication", "IDunno.WebApi.SharedKeyAuth\Idunno.WebApi.SharedKeyAuthentication.csproj", "{011C6E25-9A1A-47FE-BE84-92DE41B85224}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test Applications", "Test Applications", "{BC8BDD4D-E365-4012-9132-C9290AD1D405}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestCallingApp", "TestCallingApp\TestCallingApp.csproj", "{8E988379-F9F7-46F1-AF3F-7728793E3A07}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestReceivingApp", "TestReceivingApp\TestReceivingApp.csproj", "{444FDD2F-9554-4BCB-A995-91DDB425C4E3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{318A7755-6D03-4BBF-A435-874C43D67077}"
+	ProjectSection(SolutionItems) = preProject
+		CustomDictionary.xml = CustomDictionary.xml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{011C6E25-9A1A-47FE-BE84-92DE41B85224}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{011C6E25-9A1A-47FE-BE84-92DE41B85224}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{011C6E25-9A1A-47FE-BE84-92DE41B85224}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{011C6E25-9A1A-47FE-BE84-92DE41B85224}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E988379-F9F7-46F1-AF3F-7728793E3A07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E988379-F9F7-46F1-AF3F-7728793E3A07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E988379-F9F7-46F1-AF3F-7728793E3A07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E988379-F9F7-46F1-AF3F-7728793E3A07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{444FDD2F-9554-4BCB-A995-91DDB425C4E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{444FDD2F-9554-4BCB-A995-91DDB425C4E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{444FDD2F-9554-4BCB-A995-91DDB425C4E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{444FDD2F-9554-4BCB-A995-91DDB425C4E3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8E988379-F9F7-46F1-AF3F-7728793E3A07} = {BC8BDD4D-E365-4012-9132-C9290AD1D405}
+		{444FDD2F-9554-4BCB-A995-91DDB425C4E3} = {BC8BDD4D-E365-4012-9132-C9290AD1D405}
+	EndGlobalSection
+EndGlobal

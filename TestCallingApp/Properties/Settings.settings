@@ -1,0 +1,12 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="TestCallingApp.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="accountName" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">barryd</Value>
+    </Setting>
+    <Setting Name="secretKey" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">KUreulZKB1y//AIuXQInef7X66LRWbeCIJyQyMH33sbkmuFwk7Z+U7/iTj9MNFY/ynaHg5NenUbJKfxWLLNVsw==</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
