@@ -65,51 +65,49 @@ namespace Idunno.WebApi.SharedKeyAuthentication
             {
                 return AnonymousPrincipal;
             }
-            else
+
+            byte[] sharedKey = resolver(accountName);
+
+            if (sharedKey == null || sharedKey.Length == 0)
             {
-                byte[] sharedKey = resolver(accountName);
-
-                if (sharedKey == null || sharedKey.Length == 0)
-                {
-                    // Account not found
-                    throw new UnauthorizedException();
-                }
-
-                // Now check the checksums
-                // First, if a body is present, ensure it hasn't changed.
-                Task<byte[]> readContent = request.Content.ReadAsByteArrayAsync();
-                byte[] requestContent = readContent.Result;
-                if (requestContent.Length > 0)
-                {
-                    var sentHash = request.Content.Headers.ContentMD5;
-
-                    if (sentHash == null)
-                    {
-                        throw new ForbiddenException("Content-MD5 header must be specified when a request body is included.");                                
-                    }
-
-                    using (var md5 = new MD5CryptoServiceProvider())
-                    {
-                        byte[] computedHash = md5.ComputeHash(requestContent);
-                        if (!CompareHash(sentHash, computedHash))
-                        {
-                            throw new PreconditionFailedException("Content-MD5 does not match the request body.");
-                        }
-                    }
-                }
-
-                // Now check the actual auth signature.
-                byte[] calculatedHmac = SharedKeySignature.Calculate(request, accountName, sharedKey);
-
-                if (!CompareHash(sentHmac, calculatedHmac))
-                {
-                    throw new ForbiddenException("Token validation failed.");
-                }
-
-                var claims = new List<Claim> { new Claim(ClaimTypes.Name, accountName) };
-                var claimsIdentity = new ClaimsIdentity(claims, SharedKeyAuthentication.Scheme);
-                return new ClaimsPrincipal(claimsIdentity);
+                // Account not found
+                throw new UnauthorizedException();
             }
+
+            // Now check the checksums
+            // First, if a body is present, ensure it hasn't changed.
+            Task<byte[]> readContent = request.Content.ReadAsByteArrayAsync();
+            byte[] requestContent = readContent.Result;
+            if (requestContent.Length > 0)
+            {
+                var sentHash = request.Content.Headers.ContentMD5;
+
+                if (sentHash == null)
+                {
+                    throw new ForbiddenException("Content-MD5 header must be specified when a request body is included.");                                
+                }
+
+                using (var md5 = new MD5CryptoServiceProvider())
+                {
+                    byte[] computedHash = md5.ComputeHash(requestContent);
+                    if (!CompareHash(sentHash, computedHash))
+                    {
+                        throw new PreconditionFailedException("Content-MD5 does not match the request body.");
+                    }
+                }
+            }
+
+            // Now check the actual auth signature.
+            byte[] calculatedHmac = SharedKeySignature.Calculate(request, accountName, sharedKey);
+
+            if (!CompareHash(sentHmac, calculatedHmac))
+            {
+                throw new ForbiddenException("Token validation failed.");
+            }
+
+            var claims = new List<Claim> { new Claim(ClaimTypes.Name, accountName) };
+            var claimsIdentity = new ClaimsIdentity(claims, SharedKeyAuthentication.Scheme);
+            return new ClaimsPrincipal(claimsIdentity);
         }
         
         /// <summary>
