@@ -43,12 +43,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CanonicalizedStringBuilder.cs" />
+    <Compile Include="Exceptions.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SharedKeySigningHandler.cs" />
     <Compile Include="SharedKeyValidatingHandler.cs" />
     <Compile Include="SharedKeyAuthentication.cs" />
     <Compile Include="SharedKeySignature.cs" />
+    <Compile Include="SignatureValidator.cs" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="..\CustomDictionary.xml">
