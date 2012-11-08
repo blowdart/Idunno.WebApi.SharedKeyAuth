@@ -16,13 +16,9 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -80,8 +76,8 @@ namespace Idunno.WebApi.SharedKeyAuthentication
 
             try
             {
-                var principal = SignatureValidator.Validate(request, SharedSecretResolver, MaximumMessageAge);
-                SetPrincipal(principal);
+                var principal = SignatureValidator.Validate(request, this.SharedSecretResolver, this.MaximumMessageAge);
+                this.SetPrincipal(principal);
             }
             catch (UnauthorizedException)
             {
