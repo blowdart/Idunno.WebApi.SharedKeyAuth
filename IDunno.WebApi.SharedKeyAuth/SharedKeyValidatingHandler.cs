@@ -122,6 +122,7 @@ namespace Idunno.WebApi.SharedKeyAuthentication
         /// </summary>
         /// <param name="reason">The reason the request is unauthorized.</param>
         /// <returns>A forbidden response.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "WebApi will clean this up further up the chain.")]
         private static Task<HttpResponseMessage> Forbidden(string reason)
         {
             return Task<HttpResponseMessage>.Factory.StartNew(() => new HttpResponseMessage(HttpStatusCode.Forbidden) { ReasonPhrase = reason });
@@ -132,6 +133,7 @@ namespace Idunno.WebApi.SharedKeyAuthentication
         /// </summary>
         /// <param name="reason">The reason the request is unauthorized.</param>
         /// <returns>A precondition failed response.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "WebApi will clean this up further up the chain.")]
         private static Task<HttpResponseMessage> PreconditionFailed(string reason)
         {
             return Task<HttpResponseMessage>.Factory.StartNew(() => new HttpResponseMessage(HttpStatusCode.PreconditionFailed) { ReasonPhrase = reason });
