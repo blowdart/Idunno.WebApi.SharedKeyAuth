@@ -19,9 +19,9 @@ namespace TestReceivingApp
         protected void Application_Start()
         {
             GlobalConfiguration.Configuration.MessageHandlers
-                .Add(new SharedKeyValidatingHandler()
+                .Add(new SharedKeyValidatingHandler(ExampleSharedSecretLookup.Lookup)
                     {
-                        SharedSecretResolver = ExampleSharedSecretLookup.Lookup
+                        MaximumMessageAge = new TimeSpan(1, 0, 0)
                     });
 
             AreaRegistration.RegisterAllAreas();

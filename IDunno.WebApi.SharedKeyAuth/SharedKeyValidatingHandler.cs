@@ -30,9 +30,22 @@ namespace Idunno.WebApi.SharedKeyAuthentication
         /// <summary>
         /// Initializes a new instance of the <see cref="SharedKeyValidatingHandler" /> class.
         /// </summary>
-        public SharedKeyValidatingHandler()
-        {            
+        /// <param name="sharedSecretResolver">A function to resolve an account name to a shared secret.</param>
+        public SharedKeyValidatingHandler(Func<string, byte[]> sharedSecretResolver)
+        {
+            this.SharedSecretResolver = sharedSecretResolver;
             this.MaximumMessageAge = new TimeSpan(0, 0, 5, 0);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SharedKeyValidatingHandler" /> class.
+        /// </summary>
+        /// <param name="sharedSecretResolver">A function to resolve an account name to a shared secret.</param>
+        /// <param name="maximumMessageAge">The maximum time period a message is considered valid for.</param>
+        public SharedKeyValidatingHandler(Func<string, byte[]> sharedSecretResolver, TimeSpan maximumMessageAge)
+            : this(sharedSecretResolver)
+        {
+            this.MaximumMessageAge = maximumMessageAge;
         }
 
         /// <summary>
@@ -98,7 +111,7 @@ namespace Idunno.WebApi.SharedKeyAuthentication
         /// <summary>
         /// Attaches the specified principal to the current thread and HTTP Context if one exists.
         /// </summary>
-        /// <param name="principal">The principal to attach..</param>
+        /// <param name="principal">The principal to attach.</param>
         protected virtual void SetPrincipal(ClaimsPrincipal principal)
         {
             Thread.CurrentPrincipal = principal;
