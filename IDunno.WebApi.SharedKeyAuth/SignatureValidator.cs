@@ -17,7 +17,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
@@ -40,10 +39,9 @@ namespace Idunno.WebApi.SharedKeyAuthentication
         /// </summary>
         /// <param name="request">The <see cref="HttpRequestMessage"/> to validate</param>
         /// <param name="resolver">An account name to shared secret resolver.</param>
-        /// <param name="claimsPopulator">A function to populate custom claims for the specified account name.</param>
         /// <param name="maxAge">The maximum age of a message that will be accepted</param>
         /// <returns>A ClaimsPrincipal for the the identity which owns the message.</returns>
-        public static ClaimsPrincipal Validate(HttpRequestMessage request, Func<string, byte[]> resolver, Func<string, IEnumerable<Claim>> claimsPopulator, TimeSpan maxAge)
+        public static ClaimsPrincipal Validate(HttpRequestMessage request, Func<string, byte[]> resolver, TimeSpan maxAge)
         {
             AuthenticationHeaderValue authenticationHeader = null;
             
@@ -108,13 +106,6 @@ namespace Idunno.WebApi.SharedKeyAuthentication
             }
 
             var claims = new List<Claim> { new Claim(ClaimTypes.Name, accountName) };
-            if (claimsPopulator != null)
-            {
-                var populatedClaims = claimsPopulator(accountName).ToList();
-                populatedClaims.RemoveAll(c => c.Type == ClaimTypes.Name);
-                claims.AddRange(populatedClaims);
-            }
-
             var claimsIdentity = new ClaimsIdentity(claims, SharedKeyAuthentication.Scheme);
             return new ClaimsPrincipal(claimsIdentity);
         }
