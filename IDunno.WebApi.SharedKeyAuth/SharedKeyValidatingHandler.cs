@@ -16,6 +16,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
@@ -28,12 +29,27 @@ namespace Idunno.WebApi.SharedKeyAuthentication
     public class SharedKeyValidatingHandler : DelegatingHandler
     {
         /// <summary>
+        /// Lookup function to resolve an account name to a shared secret.
+        /// </summary>
+        private readonly Func<string, byte[]> sharedSecretResolver;
+
+        /// <summary>
+        /// Lookup function to populate any claims for an account name.
+        /// </summary>
+        private readonly Func<string, IEnumerable<Claim>> claimsPopulator;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="SharedKeyValidatingHandler" /> class.
         /// </summary>
         /// <param name="sharedSecretResolver">A function to resolve an account name to a shared secret.</param>
         public SharedKeyValidatingHandler(Func<string, byte[]> sharedSecretResolver)
         {
-            this.SharedSecretResolver = sharedSecretResolver;
+            if (sharedSecretResolver == null)
+            {
+                throw new ArgumentNullException("sharedSecretResolver");
+            }
+
+            this.sharedSecretResolver = sharedSecretResolver;
             this.MaximumMessageAge = new TimeSpan(0, 0, 5, 0);
         }
 
@@ -41,23 +57,17 @@ namespace Idunno.WebApi.SharedKeyAuthentication
         /// Initializes a new instance of the <see cref="SharedKeyValidatingHandler" /> class.
         /// </summary>
         /// <param name="sharedSecretResolver">A function to resolve an account name to a shared secret.</param>
-        /// <param name="maximumMessageAge">The maximum time period a message is considered valid for.</param>
-        public SharedKeyValidatingHandler(Func<string, byte[]> sharedSecretResolver, TimeSpan maximumMessageAge)
+        /// <param name="claimsPopulator">A function to populate custom claims for the specified account name.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "Allows for flexibility in claims lookup if needed.")]
+        public SharedKeyValidatingHandler(Func<string, byte[]> sharedSecretResolver, Func<string, IEnumerable<Claim>> claimsPopulator) 
             : this(sharedSecretResolver)
         {
-            this.MaximumMessageAge = maximumMessageAge;
-        }
+            if (claimsPopulator == null)
+            {
+                throw new ArgumentNullException("claimsPopulator");
+            }
 
-        /// <summary>
-        /// Gets or sets the shared secret resolver.
-        /// </summary>
-        /// <value>
-        /// The shared secret resolver.
-        /// </value>
-        public Func<string, byte[]> SharedSecretResolver
-        {
-            get;
-            set;
+            this.claimsPopulator = claimsPopulator;
         }
 
         /// <summary>
@@ -89,7 +99,7 @@ namespace Idunno.WebApi.SharedKeyAuthentication
 
             try
             {
-                var principal = SignatureValidator.Validate(request, this.SharedSecretResolver, this.MaximumMessageAge);
+                var principal = SignatureValidator.Validate(request, this.sharedSecretResolver, this.claimsPopulator, this.MaximumMessageAge);
                 this.SetPrincipal(principal);
             }
             catch (UnauthorizedException)
