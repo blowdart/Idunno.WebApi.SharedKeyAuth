@@ -53,7 +53,6 @@ namespace Idunno.WebApi.SharedKeyAuthentication
         /// <param name="sharedSecret">The secret used to sign the message.</param>
         public SharedKeySigningHandler(string accountName, byte[] sharedSecret)
         {
-            this.InnerHandler = new HttpClientHandler();
             this.accountName = accountName;
             this.sharedSecret = sharedSecret;
         }

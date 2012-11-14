@@ -35,10 +35,8 @@ namespace TestReceivingApp.Controllers
         {
             if (ModelState.IsValid && !(from s in Subscribers where s.Email == subscriber.Email select s).Any())
             {
-                System.Diagnostics.Debug.WriteLine(User.Identity.Name);
-                System.Diagnostics.Debug.WriteLine(User.Identity.IsAuthenticated);
-                System.Diagnostics.Debug.WriteLine(User.Identity.AuthenticationType);
-                System.Diagnostics.Debug.WriteLine(subscriber.Name);
+                subscriber.CreatedOn = DateTime.UtcNow;
+                subscriber.CreatedBy = User.Identity.Name;
 
                 Subscribers.Add(subscriber);
 

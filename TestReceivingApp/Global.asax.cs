@@ -18,12 +18,9 @@ namespace TestReceivingApp
     {
         protected void Application_Start()
         {
-            GlobalConfiguration.Configuration.MessageHandlers
-                .Add(new SharedKeyValidatingHandler(ExampleSharedSecretLookup.Lookup)
-                    {
-                        MaximumMessageAge = new TimeSpan(1, 0, 0)
-                    });
-
+            GlobalConfiguration.Configuration.MessageHandlers.Add(
+                new SharedKeyValidatingHandler(ExampleSharedSecretLookup.Lookup));
+            
             AreaRegistration.RegisterAllAreas();
 
             WebApiConfig.Register(GlobalConfiguration.Configuration);

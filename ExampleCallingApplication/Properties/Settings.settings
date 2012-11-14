@@ -1,0 +1,12 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="ExampleCallingApplication.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="AccountName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">barryd</Value>
+    </Setting>
+    <Setting Name="SharedSecret" Type="System.String" Scope="User">
+      <Value Profile="(Default)">KUreulZKB1y//AIuXQInef7X66LRWbeCIJyQyMH33sbkmuFwk7Z+U7/iTj9MNFY/ynaHg5NenUbJKfxWLLNVsw==</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
