@@ -30,11 +30,6 @@ namespace Idunno.WebApi.SharedKeyAuthentication
     internal static class SignatureValidator
     {
         /// <summary>
-        /// The identity configuration, read from the configuration file, if present.
-        /// </summary>
-        private static readonly IdentityConfiguration IdentityConfiguration = new IdentityConfiguration();
-
-        /// <summary>
         /// The anonymous principal which is attached if authentication headers are not present.
         /// </summary>
         private static readonly ClaimsPrincipal AnonymousPrincipal = 
@@ -114,13 +109,6 @@ namespace Idunno.WebApi.SharedKeyAuthentication
             var claims = new List<Claim> { new Claim(ClaimTypes.Name, accountName) };
             var claimsIdentity = new ClaimsIdentity(claims, SharedKeyAuthentication.Scheme);
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-
-            // Call the registered claims authentication manager if it exists.
-            var claimsAuthenticationManager = IdentityConfiguration.ClaimsAuthenticationManager;
-            if (claimsAuthenticationManager != null)
-            {
-                claimsPrincipal = claimsAuthenticationManager.Authenticate(request.RequestUri.ToString(), claimsPrincipal);
-            }
 
             return claimsPrincipal;
         }

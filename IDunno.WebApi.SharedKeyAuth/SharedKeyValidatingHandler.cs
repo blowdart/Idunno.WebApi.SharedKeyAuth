@@ -25,6 +25,9 @@ using System.Web;
 
 namespace Idunno.WebApi.SharedKeyAuthentication
 {
+    /// <summary>
+    /// Validates an inbound message which uses shared key authentication.
+    /// </summary>
     public class SharedKeyValidatingHandler : DelegatingHandler
     {
         /// <summary>
@@ -49,12 +52,24 @@ namespace Idunno.WebApi.SharedKeyAuthentication
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="SharedKeyValidatingHandler" /> class.
+        /// </summary>
+        /// <param name="sharedSecretResolver">A function to resolve an account name to a shared secret.</param>
+        /// <param name="maximumMessageAge">The maximum time period a message is considered valid for.</param>
+        /// <param name="claimsAuthenticationManager">The claims authentication manager to use to transform claims.</param>
+        public SharedKeyValidatingHandler(Func<string, byte[]> sharedSecretResolver, TimeSpan maximumMessageAge, ClaimsAuthenticationManager claimsAuthenticationManager)
+            : this(sharedSecretResolver, maximumMessageAge)
+        {
+            this.ClaimsAuthenticationManager = claimsAuthenticationManager;
+        }
+
+        /// <summary>
         /// Gets or sets the shared secret resolver.
         /// </summary>
         /// <value>
         /// The shared secret resolver.
         /// </value>
-        public Func<string, byte[]> SharedSecretResolver
+        protected Func<string, byte[]> SharedSecretResolver
         {
             get;
             set;
@@ -66,9 +81,21 @@ namespace Idunno.WebApi.SharedKeyAuthentication
         /// <value>
         /// The maximum message age.
         /// </value>
-        public TimeSpan MaximumMessageAge
+        protected TimeSpan MaximumMessageAge
         {
             get; 
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets the claims authentication manager to use to transform claims.
+        /// </summary>
+        /// <value>
+        /// The claims authentication manager.
+        /// </value>
+        protected ClaimsAuthenticationManager ClaimsAuthenticationManager
+        {
+            get;
             set;
         }
 
@@ -90,6 +117,12 @@ namespace Idunno.WebApi.SharedKeyAuthentication
             try
             {
                 var principal = SignatureValidator.Validate(request, this.SharedSecretResolver, this.MaximumMessageAge);
+                
+                if (this.ClaimsAuthenticationManager != null)
+                {
+                    principal = this.ClaimsAuthenticationManager.Authenticate(request.RequestUri.ToString(), principal);
+                }
+                
                 this.SetPrincipal(principal);
             }
             catch (UnauthorizedException)
