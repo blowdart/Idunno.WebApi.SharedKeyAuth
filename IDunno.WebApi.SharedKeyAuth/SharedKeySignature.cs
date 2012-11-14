@@ -46,10 +46,13 @@ namespace Idunno.WebApi.SharedKeyAuthentication
             string path = pathQuery[0];
 
             NameValueCollection queryString = pathQuery.Length != 1 ? HttpUtility.ParseQueryString(pathQuery[1]) : new NameValueCollection();
+            HttpContentHeaders contentHeaders = request.Content != null ? request.Content.Headers : null;
 
-            var canonicalizedRequest = CanonicalizeHttpHeaders(request.Method, request.Headers, request.Content.Headers)
-                                       + CanonicalizeCustomHeaders(ConvertToNameValueCollection(request.Content.Headers))
-                                       + CanonicalizeResource(path, queryString, accountName);
+            var canonicalizedHttpHeaders = CanonicalizeHttpHeaders(request.Method, request.Headers, contentHeaders);
+            var canonicalizedMicrosoftHeaders = CanonicalizeCustomHeaders(ConvertToNameValueCollection(request.Headers, contentHeaders));
+            var canonicalizedResource = CanonicalizeResource(path, queryString, accountName);
+
+            var canonicalizedRequest = canonicalizedHttpHeaders + canonicalizedMicrosoftHeaders + canonicalizedResource;
 
             return CalculateHmac256(key, canonicalizedRequest);
         }
@@ -81,7 +84,9 @@ namespace Idunno.WebApi.SharedKeyAuthentication
             HttpRequestHeaders requestHeaders,
             HttpContentHeaders contentHeaders)
         {
-            return CanonicalizeHttpHeaders(method, contentHeaders.ContentLength, requestHeaders, contentHeaders);
+            long? contentLength = contentHeaders != null ? contentHeaders.ContentLength : null;
+
+            return CanonicalizeHttpHeaders(method, contentLength, requestHeaders, contentHeaders);
         }
 
         /// <summary>
@@ -100,11 +105,23 @@ namespace Idunno.WebApi.SharedKeyAuthentication
         {
             var headerPortion = new CanonicalizedStringBuilder();
             headerPortion.Append(method.Method.ToUpperInvariant());
-            headerPortion.Append(contentHeaders.ContentEncoding);
-            headerPortion.Append(contentHeaders.ContentLanguage);
-            headerPortion.Append(contentLength == null ? string.Empty : ((long)contentLength).ToString(CultureInfo.InvariantCulture));
-            headerPortion.Append(Convert.ToBase64String(contentHeaders.ContentMD5));
-            headerPortion.Append(contentHeaders.ContentType);
+            if (contentHeaders == null)
+            {
+                headerPortion.Append(string.Empty); // Encoding
+                headerPortion.Append(string.Empty); // Language
+                // We treat null content lengths as a zero because when HttpClient sends a message without a body it adds a Content-Length=0 after the signing has taken place
+                headerPortion.Append(0); // Length
+                headerPortion.Append(string.Empty); // MD5
+                headerPortion.Append(string.Empty); // Type
+            }
+            else
+            {
+                headerPortion.Append(contentHeaders.ContentEncoding);
+                headerPortion.Append(contentHeaders.ContentLanguage);
+                headerPortion.Append(contentLength == null ? "0" : ((long)contentLength).ToString(CultureInfo.InvariantCulture));
+                headerPortion.Append(contentHeaders.ContentMD5 == null ? string.Empty : Convert.ToBase64String(contentHeaders.ContentMD5));
+                headerPortion.Append(contentHeaders.ContentType);
+            }
             headerPortion.Append(requestHeaders.Date.HasValue ? requestHeaders.Date.Value.ToString("R", CultureInfo.InvariantCulture) : null);
             headerPortion.Append(requestHeaders.IfModifiedSince);
             headerPortion.Append(requestHeaders.IfMatch);
@@ -174,18 +191,47 @@ namespace Idunno.WebApi.SharedKeyAuthentication
         /// <summary>
         /// Converts the specified headers to name value collection, where the value is the first header value encountered.
         /// </summary>
-        /// <param name="headers">The headers to convert.</param>
-        /// <returns>A NameValueCollection of headers and their first or default value.</returns>
-        private static NameValueCollection ConvertToNameValueCollection(IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers)
+        /// <param name="requestHeaders">The request headers to convert.</param>
+        /// <returns>A NameValueCollection of headers and a comma separated concatenation of their values.</returns>
+        private static NameValueCollection ConvertToNameValueCollection(HttpRequestHeaders requestHeaders, HttpContentHeaders contentHeaders)
         {
-            var collection = new NameValueCollection();
-            
-            foreach (var header in headers)
+            var collection = ConvertToNameValueCollection(requestHeaders);
+            var contentCollection = ConvertToNameValueCollection(contentHeaders);
+
+            for (var i = 0; i < contentCollection.Count; i++)
             {
-                string value = header.Value.FirstOrDefault();
-                collection.Add(header.Key, value ?? string.Empty);
+                collection.Set(contentCollection.GetKey(i), contentCollection.Get(i));
             }
 
+            return collection;
+        }
+
+        /// <summary>
+        /// Converts the specified headers to name value collection, where the value is the first header value encountered.
+        /// </summary>
+        /// <param name="headers">The headers to convert.</param>
+        /// <returns>A NameValueCollection of headers and a comma separated concatenation of their values.</returns>
+
+        private static NameValueCollection ConvertToNameValueCollection(HttpHeaders headers)
+        {
+            var collection = new NameValueCollection();
+            if (headers != null)
+            {
+                foreach (var header in headers)
+                {
+                    var concatenatedValue = string.Empty;
+                    IEnumerable<string> values;
+                    if (headers.TryGetValues(header.Key, out values))
+                    {
+                        concatenatedValue = values.Aggregate(concatenatedValue, (current, value) => current + value + ",");
+                    }
+
+                    concatenatedValue = concatenatedValue.TrimEnd(',');
+
+                    collection.Add(header.Key, concatenatedValue);
+                }
+            }
+            
             return collection;
         }
     }

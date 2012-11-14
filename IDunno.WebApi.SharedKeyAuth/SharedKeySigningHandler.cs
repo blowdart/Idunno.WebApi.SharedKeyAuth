@@ -72,17 +72,17 @@ namespace Idunno.WebApi.SharedKeyAuthentication
                 request.Headers.Date = DateTime.UtcNow;
             }
 
-            // Check if we have request content, if we do then we need to add a Content-MD5 header.
-            if (request.Content != null && request.Content.Headers.ContentMD5 == null)
+            // Check if we have request content, if we do then we need to add a Content-MD5 header if it doesn't already exist.
+            // However we can't do this if we're chunked.
+            if (request.Headers.TransferEncodingChunked == null || !(bool)request.Headers.TransferEncodingChunked)
             {
-                await request.Content.LoadIntoBufferAsync().ConfigureAwait(false);
-                using (var bodyStream = new MemoryStream())
+                // We can't rely on the length header, as it's not set yet.
+                if (request.Content != null && request.Content.Headers.ContentMD5 == null)
                 {
-                    await request.Content.CopyToAsync(bodyStream).ConfigureAwait(false);
-                    bodyStream.Position = 0;
-                    using (var md5 = new MD5CryptoServiceProvider())
+                    byte[] contentHash = SignatureValidator.CalculateBodyMd5(request).Result;
+                    if (contentHash != null)
                     {
-                        request.Content.Headers.ContentMD5 = md5.ComputeHash(bodyStream);
+                        request.Content.Headers.ContentMD5 = contentHash;
                     }
                 }
             }

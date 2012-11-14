@@ -11,6 +11,7 @@ namespace TestReceivingApp.Controllers
 {
     public class SubscribersController : ApiController    
     {
+
         private static readonly List<Subscriber> Subscribers = new List<Subscriber>();
 
         public IEnumerable<Subscriber> Get()
@@ -23,7 +24,7 @@ namespace TestReceivingApp.Controllers
             var subscriber = (from s in Subscribers where s.Email == email select s).FirstOrDefault();
             if (subscriber == null)
             {
-                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)); 
             }
 
             return subscriber;
@@ -47,7 +48,23 @@ namespace TestReceivingApp.Controllers
             }
             else
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)); 
+            }
+        }
+
+        [Authorize]
+        public Subscriber Delete(string email)
+        {
+            var subscriber = (from s in Subscribers where s.Email == email select s).FirstOrDefault();
+
+            if (subscriber != null)
+            {
+                Subscribers.RemoveAll(s => s.Email == email);
+                return subscriber;
+            }
+            else
+            {
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)); 
             }
         }
     }

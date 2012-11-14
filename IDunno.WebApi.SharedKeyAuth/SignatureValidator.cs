@@ -17,7 +17,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Configuration;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
@@ -34,6 +34,30 @@ namespace Idunno.WebApi.SharedKeyAuthentication
         /// </summary>
         private static readonly ClaimsPrincipal AnonymousPrincipal = 
             new ClaimsPrincipal(new ClaimsIdentity(new List<Claim> { new Claim(ClaimTypes.Name, string.Empty) }));
+
+        /// <summary>
+        /// Calculates the MD5 checksum of a <paramref name="request"/> body.
+        /// </summary>
+        /// <param name="request">The <see cref="HttpRequestMessage"/> for which to calculate a checksum.</param>
+        /// <returns>The hash value for the <paramref name="request"/> body.</returns>
+        public static async Task<byte[]> CalculateBodyMd5(HttpRequestMessage request)
+        {
+            await request.Content.LoadIntoBufferAsync().ConfigureAwait(false);
+            using (var bodyStream = new MemoryStream())
+            {
+                await request.Content.CopyToAsync(bodyStream).ConfigureAwait(false);
+                bodyStream.Position = 0;
+                if (bodyStream.Length <= 0)
+                {
+                    return null;
+                }
+
+                using (var md5 = new MD5CryptoServiceProvider())
+                {
+                    return md5.ComputeHash(bodyStream);
+                }
+            }            
+        }
 
         /// <summary>
         /// Validates the specified request.
@@ -75,23 +99,19 @@ namespace Idunno.WebApi.SharedKeyAuthentication
                 throw new UnauthorizedException();
             }
 
-            // Now check the checksums
-            // First, if a body is present, ensure it hasn't changed.
-            Task<byte[]> readContent = request.Content.ReadAsByteArrayAsync();
-            byte[] requestContent = readContent.Result;
-            if (requestContent.Length > 0)
+            if (request.Headers.TransferEncodingChunked == null || !(bool)request.Headers.TransferEncodingChunked)
             {
-                var sentHash = request.Content.Headers.ContentMD5;
-
-                if (sentHash == null)
+                if (request.Content.Headers.ContentLength != null && (long)request.Content.Headers.ContentLength > 0)
                 {
-                    throw new ForbiddenException("Content-MD5 header must be specified when a request body is included.");                                
-                }
+                    var sentHash = request.Content.Headers.ContentMD5;
 
-                using (var md5 = new MD5CryptoServiceProvider())
-                {
-                    byte[] computedHash = md5.ComputeHash(requestContent);
-                    if (!CompareHash(sentHash, computedHash))
+                    if (sentHash == null)
+                    {
+                        throw new ForbiddenException(
+                            "Content-MD5 header must be specified when a request body is included.");
+                    }
+
+                    if (!CompareHash(sentHash, SignatureValidator.CalculateBodyMd5(request).Result))
                     {
                         throw new PreconditionFailedException("Content-MD5 does not match the request body.");
                     }
